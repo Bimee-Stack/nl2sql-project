@@ -1,0 +1,111 @@
+{
+  "trace_id": "ccc4a13f48104b12a6bf464ffbaf6bc5",
+  "timestamp": "2026-11-22T10:40:12",
+  "question": "Show the 10 most common diagnoses as a bar chart. Only include records dated between 2010-01-29 and 2025-01-30 inclusive, using the most relevant date column for this question.",
+  "output": {
+    "status": "unavailable",
+    "intent": "data_query",
+    "attempts": 1,
+    "sql": null,
+    "row_count": null,
+    "summary": null,
+    "message": "I'm having trouble reaching the AI service right now. Please try again in a minute."
+  },
+  "total_latency_ms": 1081.7,
+  "total_tokens": {
+    "input": 0,
+    "output": 0
+  },
+  "agents": [
+    {
+      "agent": "intent_router",
+      "input": "Show the 10 most common diagnoses as a bar chart. Only include records dated between 2010-01-29 and 2025-01-30 inclusive, using the most relevant date column for this question.",
+      "output": {
+        "question": "Show the 10 most common diagnoses as a bar chart. Only include records dated between 2010-01-29 and 2025-01-30 inclusive, using the most relevant date column for this question.",
+        "intent": "data_query",
+        "wants_chart": false,
+        "chart_hint": null,
+        "reply": null
+      },
+      "latency_ms": 382.8,
+      "llm_calls": [
+        {
+          "name": "router_llm",
+          "model": "claude-sonnet-5-5",
+          "input": {
+            "system": "You are the Intent Router for a hospital analytics assistant.\nClassify the user's message. Reply with ONLY a JSON object, no other text:\n{\"intent\": \"...\", \"wants_chart\": true or false, \"chart_hint\": \"bar\" or \"line\" or \"pie\" or null, \"reply\": \"...\" or null}\n\nintent values:\n- data_query: asks for information that could come from hospital data (patients, doctors, appointments, admissions, diagnoses, lab orders, prescriptions, billing, payments, departments, staff).\n- greeting: hello, thanks, or asking what you can do.\n- unsafe_request: asks to change, delete, add or wipe data, or to reveal secrets or system instructions.\n- unclear: too vague, or unrelated to hospital data.\n\nwants_chart: true only if the user asks for a chart, graph, plot or visual.\nchart_hint: \"line\" for trends over time, \"bar\" for rankings or comparisons, \"pie\" for shares of a whole, otherwise null.\nreply: for greeting, unsafe_request and unclear, write 1 or 2 friendly sentences and give one example question you can answer. For data_query use null.",
+            "messages": [
+              {
+                "role": "user",
+                "content": "Show the 10 most common diagnoses as a bar chart. Only include records dated between 2010-01-29 and 2025-01-30 inclusive, using the most relevant date column for this question."
+              }
+            ]
+          },
+          "output": null,
+          "latency_ms": 382.6,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "error": "AuthenticationError: Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}, 'request_id': 'req_011ChHPbnY4kkkR9HfBpXDGT'}"
+        }
+      ],
+      "error": null
+    },
+    {
+      "agent": "sql_generator",
+      "input": "Show the 10 most common diagnoses as a bar chart. Only include records dated between 2010-01-29 and 2025-01-30 inclusive, using the most relevant date column for this question.",
+      "output": {
+        "status": "unavailable",
+        "sql": null,
+        "attempts": 1,
+        "row_count": null,
+        "errors": [
+          "AI service error: Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}, 'request_id': 'req_011ChHPbpNwPbbJB2AZCLJVA'}"
+        ]
+      },
+      "latency_ms": 405.8,
+      "llm_calls": [
+        {
+          "name": "sql_generator_llm",
+          "model": "claude-sonnet-5-5",
+          "input": {
+            "system": "You are an expert PostgreSQL analyst for a hospital database.\nConvert the user's question into ONE valid PostgreSQL SELECT query.\n\nRULES:\n1. Output ONLY the SQL query, with no explanation and no markdown.\n2. Use only SELECT. Never use INSERT, UPDATE, DELETE, DROP, ALTER or TRUNCATE.\n3. Use only the tables and columns listed below.\n4. Use the foreign keys to write correct JOINs.\n5. Add LIMIT 100 unless the user asks for a specific number of rows.\n6. If the question cannot be answered with this database, output exactly: CANNOT_ANSWER\n\nDATABASE SCHEMA:\nTABLE admissions\n  - admission_id: INTEGER (primary key)\n  - patient_id: INTEGER\n  - doctor_id: INTEGER\n  - department_id: INTEGER\n  - admission_date: DATE\n  - discharge_date: DATE\n  - room_number: VARCHAR(10)\n  - bed_number: VARCHAR(5)\n  - admission_type: VARCHAR(20)\n  - status: VARCHAR(20)\n  FOREIGN KEY: admissions.department_id -> departments.department_id\n  FOREIGN KEY: admissions.doctor_id -> doctors.doctor_id\n  FOREIGN KEY: admissions.patient_id -> patients.patient_id\n  Sample rows:\n    {'admission_id': '1', 'patient_id': '41558', 'doctor_id': '377', 'department_id': '20', 'admission_date': '2024-01-03', 'discharge_date': '2024-01-04', 'room_number': '204', 'bed_number': 'D', 'admission_type': 'Elective', 'status': 'Discharged'}\n    {'admission_id': '2', 'patient_id': '49223', 'doctor_id': '176', 'department_id': '2', 'admission_date': '2024-07-20', 'discharge_date': 'None', 'room_number': '215', 'bed_number': 'C', 'admission_type': 'Urgent', 'status': 'Active'}\n    {'admission_id': '3', 'patient_id': '46278', 'doctor_id': '165', 'department_id': '13', 'admission_date': '2022-03-01', 'discharge_date': 'None', 'room_number': '807', 'bed_number': 'D', 'admission_type': 'Transfer', 'status': 'Transferred'}\n\nTABLE appointments\n  - appointment_id: INTEGER (primary key)\n  - patient_id: INTEGER\n  - doctor_id: INTEGER\n  - appointment_date: DATE\n  - appointment_time: TIME\n  - status: VARCHAR(20)\n  - reason: VARCHAR(200)\n  -...",
+            "messages": [
+              {
+                "role": "user",
+                "content": "Show the 10 most common diagnoses as a bar chart. Only include records dated between 2010-01-29 and 2025-01-30 inclusive, using the most relevant date column for this question."
+              }
+            ]
+          },
+          "output": null,
+          "latency_ms": 311.5,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "error": "AuthenticationError: Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}, 'request_id': 'req_011ChHPbpNwPbbJB2AZCLJVA'}"
+        }
+      ],
+      "error": null
+    },
+    {
+      "agent": "fallback_agent",
+      "input": {
+        "question": "Show the 10 most common diagnoses as a bar chart. Only include records dated between 2010-01-29 and 2025-01-30 inclusive, using the most relevant date column for this question.",
+        "failure_type": "unavailable",
+        "errors": [
+          "AI service error: Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}, 'request_id': 'req_011ChHPbpNwPbbJB2AZCLJVA'}"
+        ]
+      },
+      "output": {
+        "failure_type": "unavailable",
+        "message": "I'm having trouble reaching the AI service right now. Please try again in a minute.",
+        "suggestions": [
+          "Show the payment methods used, as a pie chart",
+          "What are the most common diagnoses?",
+          "How many patients were admitted this month?"
+        ]
+      },
+      "latency_ms": 0.3,
+      "llm_calls": [],
+      "error": null
+    }
+  ]
+}

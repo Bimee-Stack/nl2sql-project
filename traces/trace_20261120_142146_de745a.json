@@ -1,0 +1,20 @@
+{
+  "trace_id": "de745a5c0cba4aeba8e477aa6b7cb76b",
+  "timestamp": "2026-11-20T14:21:46",
+  "question": "",
+  "output": {
+    "status": "direct_reply",
+    "intent": "unclear",
+    "attempts": 0,
+    "sql": null,
+    "row_count": null,
+    "summary": null,
+    "message": "Please type a question about the hospital data."
+  },
+  "total_latency_ms": 0.2,
+  "total_tokens": {
+    "input": 0,
+    "output": 0
+  },
+  "agents": []
+}

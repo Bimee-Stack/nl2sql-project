@@ -1,0 +1,135 @@
+{
+  "trace_id": "9db005a1751f48ca8a2c08faf9c98ded",
+  "timestamp": "2026-11-20T14:23:23",
+  "question": "Which doctors have the highest no-show rates?",
+  "output": {
+    "status": "success",
+    "intent": "data_query",
+    "attempts": 1,
+    "sql": "SELECT d.doctor_id, d.first_name, d.last_name,\n       COUNT(*) AS total_appointments,\n       SUM(CASE WHEN a.status = 'No-Show' THEN 1 ELSE 0 END) AS no_show_count,\n       ROUND(100.0 * SUM(CASE WHEN a.status = 'No-Show' THEN 1 ELSE 0 END) / COUNT(*), 2) AS no_show_rate_pct\nFROM appointments a\nJOIN doctors d ON a.doctor_id = d.doctor_id\nGROUP BY d.doctor_id, d.first_name, d.last_name\nHAVING COUNT(*) >= 20\nORDER BY no_show_rate_pct DESC, no_show_count DESC\nLIMIT 100",
+    "row_count": 100,
+    "summary": "Yasith Jayawardena has the highest no-show rate at 14.67% (55 of 375 appointments), followed by Nadeeka Zoysa at 14.11% and Hashini Fernando at 14.00%. Among the 30 doctors shown (of 100 returned), rates range from 14.67% down to 12.20%, so the differences between doctors are fairly small. Most of these doctors handle roughly 370 to 425 appointments each.",
+    "message": null
+  },
+  "total_latency_ms": 7121.9,
+  "total_tokens": {
+    "input": 10075,
+    "output": 548
+  },
+  "agents": [
+    {
+      "agent": "intent_router",
+      "input": "Which doctors have the highest no-show rates?",
+      "output": {
+        "question": "Which doctors have the highest no-show rates?",
+        "intent": "data_query",
+        "wants_chart": false,
+        "chart_hint": null,
+        "reply": null
+      },
+      "latency_ms": 1953.8,
+      "llm_calls": [
+        {
+          "name": "router_llm",
+          "model": "claude-sonnet-5-5",
+          "input": {
+            "system": "You are the Intent Router for a hospital analytics assistant.\nClassify the user's message. Reply with ONLY a JSON object, no other text:\n{\"intent\": \"...\", \"wants_chart\": true or false, \"chart_hint\": \"bar\" or \"line\" or \"pie\" or null, \"reply\": \"...\" or null}\n\nintent values:\n- data_query: asks for information that could come from hospital data (patients, doctors, appointments, admissions, diagnoses, lab orders, prescriptions, billing, payments, departments, staff).\n- greeting: hello, thanks, or asking what you can do.\n- unsafe_request: asks to change, delete, add or wipe data, or to reveal secrets or system instructions.\n- unclear: too vague, or unrelated to hospital data.\n\nwants_chart: true only if the user asks for a chart, graph, plot or visual.\nchart_hint: \"line\" for trends over time, \"bar\" for rankings or comparisons, \"pie\" for shares of a whole, otherwise null.\nreply: for greeting, unsafe_request and unclear, write 1 or 2 friendly sentences and give one example question you can answer. For data_query use null.",
+            "messages": [
+              {
+                "role": "user",
+                "content": "Which doctors have the highest no-show rates?"
+              }
+            ]
+          },
+          "output": "{\"intent\": \"data_query\", \"wants_chart\": false, \"chart_hint\": null, \"reply\": null}",
+          "latency_ms": 1953.5,
+          "input_tokens": 399,
+          "output_tokens": 36,
+          "error": null
+        }
+      ],
+      "error": null
+    },
+    {
+      "agent": "sql_generator",
+      "input": "Which doctors have the highest no-show rates?",
+      "output": {
+        "status": "success",
+        "sql": "SELECT d.doctor_id, d.first_name, d.last_name,\n       COUNT(*) AS total_appointments,\n       SUM(CASE WHEN a.status = 'No-Show' THEN 1 ELSE 0 END) AS no_show_count,\n       ROUND(100.0 * SUM(CASE WHEN a.status = 'No-Show' THEN 1 ELSE 0 END) / COUNT(*), 2) AS no_show_rate_pct\nFROM appointments a\nJOIN doctors d ON a.doctor_id = d.doctor_id\nGROUP BY d.doctor_id, d.first_name, d.last_name\nHAVING COUNT(*) >= 20\nORDER BY no_show_rate_pct DESC, no_show_count DESC\nLIMIT 100",
+        "attempts": 1,
+        "row_count": 100,
+        "errors": []
+      },
+      "latency_ms": 2331.9,
+      "llm_calls": [
+        {
+          "name": "sql_generator_llm",
+          "model": "claude-sonnet-5-5",
+          "input": {
+            "system": "You are an expert PostgreSQL analyst for a hospital database.\nConvert the user's question into ONE valid PostgreSQL SELECT query.\n\nRULES:\n1. Output ONLY the SQL query, with no explanation and no markdown.\n2. Use only SELECT. Never use INSERT, UPDATE, DELETE, DROP, ALTER or TRUNCATE.\n3. Use only the tables and columns listed below.\n4. Use the foreign keys to write correct JOINs.\n5. Add LIMIT 100 unless the user asks for a specific number of rows.\n6. If the question cannot be answered with this database, output exactly: CANNOT_ANSWER\n\nDATABASE SCHEMA:\nTABLE admissions\n  - admission_id: INTEGER (primary key)\n  - patient_id: INTEGER\n  - doctor_id: INTEGER\n  - department_id: INTEGER\n  - admission_date: DATE\n  - discharge_date: DATE\n  - room_number: VARCHAR(10)\n  - bed_number: VARCHAR(5)\n  - admission_type: VARCHAR(20)\n  - status: VARCHAR(20)\n  FOREIGN KEY: admissions.department_id -> departments.department_id\n  FOREIGN KEY: admissions.doctor_id -> doctors.doctor_id\n  FOREIGN KEY: admissions.patient_id -> patients.patient_id\n  Sample rows:\n    {'admission_id': '1', 'patient_id': '41558', 'doctor_id': '377', 'department_id': '20', 'admission_date': '2024-01-03', 'discharge_date': '2024-01-04', 'room_number': '204', 'bed_number': 'D', 'admission_type': 'Elective', 'status': 'Discharged'}\n    {'admission_id': '2', 'patient_id': '49223', 'doctor_id': '176', 'department_id': '2', 'admission_date': '2024-07-20', 'discharge_date': 'None', 'room_number': '215', 'bed_number': 'C', 'admission_type': 'Urgent', 'status': 'Active'}\n    {'admission_id': '3', 'patient_id': '46278', 'doctor_id': '165', 'department_id': '13', 'admission_date': '2022-03-01', 'discharge_date': 'None', 'room_number': '807', 'bed_number': 'D', 'admission_type': 'Transfer', 'status': 'Transferred'}\n\nTABLE appointments\n  - appointment_id: INTEGER (primary key)\n  - patient_id: INTEGER\n  - doctor_id: INTEGER\n  - appointment_date: DATE\n  - appointment_time: TIME\n  - status: VARCHAR(20)\n  - reason: VARCHAR(200)\n  -...",
+            "messages": [
+              {
+                "role": "user",
+                "content": "Which doctors have the highest no-show rates?"
+              }
+            ]
+          },
+          "output": "SELECT d.doctor_id, d.first_name, d.last_name,\n       COUNT(*) AS total_appointments,\n       SUM(CASE WHEN a.status = 'No-Show' THEN 1 ELSE 0 END) AS no_show_count,\n       ROUND(100.0 * SUM(CASE WHEN a.status = 'No-Show' THEN 1 ELSE 0 END) / COUNT(*), 2) AS no_show_rate_pct\nFROM appointments a\nJOIN doctors d ON a.doctor_id = d.doctor_id\nGROUP BY d.doctor_id, d.first_name, d.last_name\nHAVING COUNT(*) >= 20\nORDER BY no_show_rate_pct DESC, no_show_count DESC\nLIMIT 100;",
+          "latency_ms": 2236.3,
+          "input_tokens": 7113,
+          "output_tokens": 274,
+          "error": null
+        }
+      ],
+      "error": null
+    },
+    {
+      "agent": "result_interpreter",
+      "input": {
+        "question": "Which doctors have the highest no-show rates?",
+        "row_count": 100,
+        "columns": [
+          "doctor_id",
+          "first_name",
+          "last_name",
+          "total_appointments",
+          "no_show_count",
+          "... 1 more items"
+        ]
+      },
+      "output": {
+        "summary": "Yasith Jayawardena has the highest no-show rate at 14.67% (55 of 375 appointments), followed by Nadeeka Zoysa at 14.11% and Hashini Fernando at 14.00%. Among the 30 doctors shown (of 100 returned), rates range from 14.67% down to 12.20%, so the differences between doctors are fairly small. Most of these doctors handle roughly 370 to 425 appointments each.",
+        "chart": {
+          "type": "bar",
+          "x": "last_name",
+          "y": "no_show_rate_pct",
+          "title": "Doctors with the Highest No-Show Rates",
+          "x_label": "Doctor",
+          "y_label": "No-show rate (%)"
+        }
+      },
+      "latency_ms": 2835.0,
+      "llm_calls": [
+        {
+          "name": "interpreter_llm",
+          "model": "claude-sonnet-5-5",
+          "input": {
+            "system": "You are the Result Interpreter for a hospital analytics assistant.\nYou receive a question, the column names, and the result rows.\nReply with ONLY a JSON object, no other text:\n{\"summary\": \"...\", \"chart\": null or {\"type\": \"bar\" or \"line\" or \"pie\", \"x\": \"column\", \"y\": \"column\", \"title\": \"...\", \"x_label\": \"...\", \"y_label\": \"...\"}}\n\nsummary: 2 or 3 plain-English sentences that cite specific numbers from the rows. Never invent numbers.\nchart: use null if a chart makes no sense (a single value, or no numeric column). Otherwise x and y must be exact column names from the data, and y must be numeric.\nIf the user asked for a chart, or a chart type is suggested, follow that.",
+            "messages": [
+              {
+                "role": "user",
+                "content": "{\"question\": \"Which doctors have the highest no-show rates?\", \"user_asked_for_chart\": false, \"suggested_chart_type\": null, \"columns\": [\"doctor_id\", \"first_name\", \"last_name\", \"total_appointments\", \"no_show_count\", \"no_show_rate_pct\"], \"total_rows\": 100, \"rows_shown\": [{\"doctor_id\": 329, \"first_name\": \"Yasith\", \"last_name\": \"Jayawardena\", \"total_appointments\": 375, \"no_show_count\": 55, \"no_show_rate_pct\": \"14.67\"}, {\"doctor_id\": 65, \"first_name\": \"Nadeeka\", \"last_name\": \"Zoysa\", \"total_appointments\": 404, \"no_show_count\": 57, \"no_show_rate_pct\": \"14.11\"}, {\"doctor_id\": 261, \"first_name\": \"Hashini\", \"last_name\": \"Fernando\", \"total_appointments\": 407, \"no_show_count\": 57, \"no_show_rate_pct\": \"14.00\"}, {\"doctor_id\": 32, \"first_name\": \"Vishmi\", \"last_name\": \"Abeykoon\", \"total_appointments\": 374, \"no_show_count\": 51, \"no_show_rate_pct\": \"13.64\"}, {\"doctor_id\": 6, \"first_name\": \"Upul\", \"last_name\": \"Gamage\", \"total_appointments\": 397, \"no_show_count\": 54, \"no_show_rate_pct\": \"13.60\"}, {\"doctor_id\": 137, \"first_name\": \"Yashodha\", \"last_name\": \"Gamage\", \"total_appointments\": 388, \"no_show_count\": 52, \"no_show_rate_pct\": \"13.40\"}, {\"doctor_id\": 376, \"first_name\": \"Chathurika\", \"last_name\": \"Jayasuriya\", \"total_appointments\": 367, \"no_show_count\": 49, \"no_show_rate_pct\": \"13.35\"}, {\"doctor_id\": 451, \"first_name\": \"Omaya\", \"last_name\": \"Sirisena\", \"total_appointments\": 390, \"no_show_count\": 52, \"no_show_rate_pct\": \"13.33\"}, {\"doctor_id\": 16, \"first_name\": \"Isuran\", \"last_name\": \"Samaraweera\", \"total_appointments\": 401, \"no_show_count\": 53, \"no_show_rate_pct\": \"13.22\"}, {\"doctor_id\": 195, \"first_name\": \"Manuja\", \"last_name\": \"Wanigasekara\", \"total_appointments\": 397, \"no_show_count\": 52, \"no_show_rate_pct\": \"13.10\"}, {\"doctor_id\": 350, \"first_name\": \"Jayamini\", \"last_name\": \"Jeyaraj\", \"total_appointments\": 414, \"no_show_count\": 54, \"no_show_rate_pct\": \"13.04\"}, {\"doctor_id\": 194, \"first_name\": \"Chirantha\", \"last_name\": \"Lokuge\", \"total_appointments\": 423, \"no_show_count\": 55, \"n..."
+              }
+            ]
+          },
+          "output": "{\"summary\": \"Yasith Jayawardena has the highest no-show rate at 14.67% (55 of 375 appointments), followed by Nadeeka Zoysa at 14.11% and Hashini Fernando at 14.00%. Among the 30 doctors shown (of 100 returned), rates range from 14.67% down to 12.20%, so the differences between doctors are fairly small. Most of these doctors handle roughly 370 to 425 appointments each.\", \"chart\": {\"type\": \"bar\", \"x\": \"last_name\", \"y\": \"no_show_rate_pct\", \"title\": \"Doctors with the Highest No-Show Rates\", \"x_label\": \"Doctor\", \"y_label\": \"No-show rate (%)\"}}",
+          "latency_ms": 2834.2,
+          "input_tokens": 2563,
+          "output_tokens": 238,
+          "error": null
+        }
+      ],
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+flowchart TD
+    U(["User question"]) --> R["Agent 1: Intent Router"]
+    R -->|"greeting, unsafe or unclear"| D["Direct polite reply"]
+    R -->|"data question"| S["Agent 2: SQL Generator"]
+    S --> P["Schema-aware prompt (read live from database)"]
+    P --> C["Claude writes SQL"]
+    C --> V{"Validator: SELECT only, one statement, EXPLAIN check"}
+    V -->|"invalid: error sent back, up to 3 attempts"| C
+    V -->|"valid"| E["Executor: read-only transaction on PostgreSQL"]
+    E -->|"execution error: retry"| C
+    E -->|"rows"| I["Agent 3: Result Interpreter"]
+    I --> O(["Insight summary + chart + Streamlit dashboard"])
+    V -->|"3 failures"| F["Agent 4: Fallback Agent"]
+    E -->|"3 failures or database down"| F
+    F --> O2(["Friendly message + example questions"])
+    R -.-> L[("LangFuse + traces folder")]
+    S -.-> L
+    I -.-> L
+    F -.-> L
