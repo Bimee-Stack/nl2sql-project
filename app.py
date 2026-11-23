@@ -72,6 +72,15 @@ def render_result(result: dict, key: str):
         st.warning(result["message"] or "No answer is available for this panel.")
         for suggestion in result.get("suggestions") or []:
             st.caption(f"Try: {suggestion}")
+        import os
+
+        if os.getenv("SHOW_DEBUG") == "1":
+            details = (
+                result.get("agent_messages", {}).get("sql_generator", {}).get("errors")
+            )
+            with st.expander("Debug details"):
+                st.write(f"Status: {result['status']}")
+                st.write(details or "No errors were recorded.")
         return
 
     df = rows_to_dataframe(result["rows"])
