@@ -5,3 +5,8 @@ __pycache__/.env
 .streamlit/secrets.toml
 .DS_Store
 medicore_data.sql
+make_secrets.py
+patch_*.py
+test_model.py
+test_key.py
+debug_revenue.py
